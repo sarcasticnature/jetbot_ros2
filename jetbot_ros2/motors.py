@@ -1,10 +1,10 @@
-# from math import sin, cos, radians
+from math import sin, cos, radians
 import rclpy
 from rclpy.node import Node
 
 import qwiic_scmd
 from std_msgs.msg import String
-# from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Twist
 
 
 class MotorNode(Node):
@@ -13,8 +13,8 @@ class MotorNode(Node):
         super().__init__('motor_node')
 
         self.motor_driver = qwiic_scmd.QwiicScmd()
-        self.motor_left_ID = 0
-        self.motor_right_ID = 1
+        self.left_motor = 0
+        self.right_motor = 1
         self.all_stop()
 
         self.string_sub = self.create_subscription(
@@ -23,12 +23,11 @@ class MotorNode(Node):
             self.string_callback,
             10)
         
-# #TODO
-#        self.twist_sub = self.create_subscription(
-#            Twist,
-#            'jetbot_motor_twist',
-#            self.twist_callback,
-#            10)
+        self.twist_sub = self.create_subscription(
+            Twist,
+            'jetbot_motor_twist',
+            self.twist_callback,
+            10)
 
 
     # sets motor speed between [-1.0, 1.0]
@@ -52,28 +51,42 @@ class MotorNode(Node):
 
     def string_callback(self, msg):
         if msg.data == "left":
-            self.set_speed(self.motor_left_ID,  -1.0)
-            self.set_speed(self.motor_right_ID,  1.0)
+            self.set_speed(self.left_motor,  -1.0)
+            self.set_speed(self.right_motor,  1.0)
             self.motor_driver.enable()
         elif msg.data == "right":
-            self.set_speed(self.motor_left_ID,   1.0)
-            self.set_speed(self.motor_right_ID, -1.0)
+            self.set_speed(self.left_motor,   1.0)
+            self.set_speed(self.right_motor, -1.0)
             self.motor_driver.enable()
         elif msg.data == "forward":
-            self.set_speed(self.motor_left_ID,   1.0)
-            self.set_speed(self.motor_right_ID,  1.0)
+            self.set_speed(self.left_motor,   1.0)
+            self.set_speed(self.right_motor,  1.0)
             self.motor_driver.enable()
         elif msg.data == "backward":
-            self.set_speed(self.motor_left_ID,  -1.0)
-            self.set_speed(self.motor_right_ID, -1.0)
+            self.set_speed(self.left_motor,  -1.0)
+            self.set_speed(self.right_motor, -1.0)
             self.motor_driver.enable()
         elif msg.data == "stop":
             self.all_stop()
         else:
             self.get_logger().error(f"Invalid cmd_str={msg.data}")
 
-#    def twist_callback(self, msg):
-#        pass
+    # TODO
+    def twist_callback(self, msg):
+        speed = msg.linear.x
+        heading = msg.angular.z
+        # verify heading/speed are acceptable values
+        if heading > 90 or heading < -90 or speed < -1 or speed > 1:
+            self.get_loggers().error(f"Illegal motor Twist message: speed: {speed}, heading: {heading}")
+            self.all_stop()
+        elif heading >= 0:
+            self.set_speed(self.left_motor, cos(radians(heading) * 2) * speed)
+            self.set_speed(self.right_motor, speed)
+        else:
+            self.set_speed(self.left_motor, speed)
+            self.set_speed(self.right_motor, cos(radians(heading) * 2) * speed)
+
+
 
 
 def main(args=None):
