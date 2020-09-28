@@ -33,7 +33,6 @@ class MotorNode(Node):
     # sets motor speed between [-1.0, 1.0]
     def set_speed(self, motor_ID, value):
         max_pwm = 115.0
-        #speed = int(min(max(abs(value * max_pwm), 0), max_pwm))
         speed = int(value * max_pwm)
     
         if motor_ID == 0 or 1:
@@ -44,13 +43,12 @@ class MotorNode(Node):
     
     # stops all motors
     def all_stop(self):
-        self.motor_driver.set_drive(0,0,0)
-        self.motor_driver.set_drive(1,0,0)
+        self.motor_driver.set_drive(self.left_motor,0,0)
+        self.motor_driver.set_drive(self.right_motor,0,0)
     
         self.motor_driver.disable()
 
     def string_callback(self, msg):
-        self.get_logger().debug("hit string callback")
         if msg.data == "left":
             self.set_speed(self.left_motor,  -1.0)
             self.set_speed(self.right_motor,  1.0)
@@ -73,11 +71,11 @@ class MotorNode(Node):
             self.get_logger().error(f"Invalid cmd_str={msg.data}")
 
     def twist_callback(self, msg):
-        self.get_logger().debug("hit twist callback")
         speed = msg.linear.x
         heading = msg.angular.z
         # verify heading/speed are acceptable values
-        if heading > 90 or heading < -90 or speed < -1 or speed > 1:
+        # 
+        if heading > 90.0 or heading < -90.0 or speed < -1.0 or speed > 1.0:
             self.get_logger().error(f"Illegal motor Twist message: speed: {speed}, heading: {heading}")
             self.all_stop()
         elif heading >= 0:
