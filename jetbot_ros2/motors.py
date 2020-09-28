@@ -83,9 +83,11 @@ class MotorNode(Node):
         elif heading >= 0:
             self.set_speed(self.left_motor, cos(radians(heading) * 2) * speed)
             self.set_speed(self.right_motor, speed)
+            self.motor_driver.enable()
         else:
             self.set_speed(self.left_motor, speed)
             self.set_speed(self.right_motor, cos(radians(heading) * 2) * speed)
+            self.motor_driver.enable()
 
 
 
