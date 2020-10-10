@@ -13,7 +13,7 @@ class Vl53l1xNode(Node):
         
         self.sensor = qwiic.QwiicVL53L1X()
 
-        if (not init_sensor()):
+        if (not self.init_sensor()):
            self.get_logger().error("failed init_sensor() during construction, destroying node") 
            self.destroy_node()
 
@@ -31,19 +31,19 @@ class Vl53l1xNode(Node):
 
 
     def init_sensor(self):
-        if (status := sensor.sensor_init()):
+        if (status := self.sensor.sensor_init()):
            self.get_logger().error(f"sensor_init() failed, error code: {status}") 
-           return false
+           return False
         else:
             self.sensor.set_distance_mode(1)    # short distance mode
             self.sensor.clear_interrupt()
             self.sensor.start_ranging()
-            return true
+            return True
     
     def reset_sensor(self):
         self.sensor.soft_reset()
         sleep(.01)
-        if (not init_sensor()):
+        if (not self.init_sensor()):
             self.get_logger().error("failed init_sensor() during reset") 
             self.sensor.clear_interrupt()
         else:
@@ -55,7 +55,7 @@ class Vl53l1xNode(Node):
         if (self.sensor.check_for_data_ready()):
             self.sensor.clear_interrupt()
             self.error_count = 0
-            self.distance_msg.range = self.sensor.get_distance()
+            self.distance_msg.range = float(self.sensor.get_distance())
             self.distance_pub.publish(self.distance_msg)
 #            self.get_logger().info(f"publishing distance: {self.distance_msg.range}")
         else:
