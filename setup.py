@@ -21,6 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
             'motor_node = jetbot_ros2.motors:main',
+            'distance_node = jetbot_ros2.vl53l1x:main',
         ],
     },
 )
