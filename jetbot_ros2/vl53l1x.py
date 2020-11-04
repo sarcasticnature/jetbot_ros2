@@ -26,7 +26,7 @@ class Vl53l1xNode(Node):
 
 
         self.distance_pub = self.create_publisher(Range, 'tof_distance', 10)
-        timer_period = .125     # 125ms
+        timer_period = .125
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
 
@@ -55,8 +55,8 @@ class Vl53l1xNode(Node):
         if (self.sensor.check_for_data_ready()):
             self.sensor.clear_interrupt()
             self.error_count = 0
-            self.distance_msg.range = float(self.sensor.get_distance())
-            self.distance_msg.header.stamp = rospy.Time.now()
+            self.distance_msg.range = float(self.sensor.get_distance()/1000)
+            self.distance_msg.header.stamp = self.get_clock().now().to_msg()
             self.distance_pub.publish(self.distance_msg)
 #            self.get_logger().info(f"publishing distance: {self.distance_msg.range}")
         else:
