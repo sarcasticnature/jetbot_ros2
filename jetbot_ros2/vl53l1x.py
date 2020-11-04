@@ -56,6 +56,7 @@ class Vl53l1xNode(Node):
             self.sensor.clear_interrupt()
             self.error_count = 0
             self.distance_msg.range = float(self.sensor.get_distance())
+            self.distance_msg.header.stamp = rospy.Time.now()
             self.distance_pub.publish(self.distance_msg)
 #            self.get_logger().info(f"publishing distance: {self.distance_msg.range}")
         else:
